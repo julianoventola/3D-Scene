@@ -1,0 +1,37 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.exp {
+  position: fixed;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+#exp-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+#move {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+}
+
+#reset {
+  position: absolute;
+  bottom: 6rem;
+  right: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  font-size: 1rem;
+}
