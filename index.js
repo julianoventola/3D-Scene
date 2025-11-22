@@ -23,6 +23,19 @@ resetButton.addEventListener("click", () => {
   sun.position.z = 5
 })
 
+let character = {
+  instance: null,
+  moveDistance: 3,
+  jumpHeight: 1,
+  isMoving: false,
+  movingDuration: 0.2
+}
+
+const moveUp = document.querySelector("#moveUp")
+const moveDown = document.querySelector("#moveDown")
+const moveLeft = document.querySelector("#moveLeft")
+const moveRight = document.querySelector("#moveRight")
+
 const modalContent = {
   "Flower": {
     title: "Flower",
@@ -129,6 +142,10 @@ loader.load(file, function (glb) {
       child.castShadow = true
       child.receiveShadow = true
     }
+
+    if (child.name == "Character") {
+      character.instance = child
+    }
   })
   scene.add(glb.scene);
 }, undefined, function (error) {
@@ -196,9 +213,94 @@ function movingSun() {
   }
 }
 
+function moveCharacter(targetPositon, targetRotation) {
+  character.isMoving = true
+
+  const t1 = gsap.timeline({
+    onComplete: () => {
+      character.isMoving = false
+    }
+  })
+
+  t1.to(character.instance.position, {
+    x: targetPositon.x,
+    z: targetPositon.z,
+    duration: character.movingDuration
+  })
+
+  t1.to(character.instance.rotation,
+    {
+      y: targetRotation,
+      duration: character.movingDuration
+    },
+    0)
+
+  t1.to(character.instance.position, {
+    y: character.instance.position.y + character.jumpHeight,
+    duration: character.movingDuration / 2,
+    yoyo: true,
+    repeat: 1
+  }, 0)
+}
+
+
+function onKeyDown(event) {
+  if (character.isMoving) {
+    return
+  }
+
+  const targetPostion = new THREE.Vector3().copy(character.instance.position)
+  let targetRotation = 0
+
+  switch (event.key.toLowerCase()) {
+    case "w":
+    case "arrowup":
+      targetPostion.x -= character.moveDistance
+      targetRotation = Math.PI
+      break;
+
+    case "s":
+    case "arrowdown":
+      targetPostion.x += character.moveDistance
+      targetRotation = 0
+      break;
+
+    case "a":
+    case "arrowleft":
+      targetPostion.z += character.moveDistance
+      targetRotation = -Math.PI / 2
+      break;
+
+    case "d":
+    case "arrowright":
+      targetPostion.z -= character.moveDistance
+      targetRotation = Math.PI / 2
+      break;
+    default:
+      break;
+  }
+  moveCharacter(targetPostion, targetRotation)
+
+}
+
+window.addEventListener("keydown", onKeyDown)
+moveUp.addEventListener("click", () => {
+  onKeyDown({ key: "w" })
+})
+moveDown.addEventListener("click", () => {
+  onKeyDown({ key: "s" })
+})
+moveLeft.addEventListener("click", () => {
+  onKeyDown({ key: "a" })
+})
+moveRight.addEventListener("click", () => {
+  onKeyDown({ key: "d" })
+})
+
+
 function animate() {
   renderer.render(scene, camera);
-              
+
   raycaster.setFromCamera(pointer, camera)
   const intersects = raycaster.intersectObjects(scene.children)
 
