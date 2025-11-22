@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
+const file = './scene.glb'
 const moveButton = document.querySelector("#move")
 const resetButton = document.querySelector("#reset")
 let moveSun = false
@@ -22,15 +23,83 @@ resetButton.addEventListener("click", () => {
   sun.position.z = 5
 })
 
+const modalContent = {
+  "Flower": {
+    title: "Flower",
+    content: "You found a flower🌹!",
+    view: ""
+  },
+  "BigTree": {
+    title: "Big Tree",
+    content: "You found a big tree🌳!",
+    view: ""
+  },
+  "Car": {
+    title: "Car",
+    content: "You found a red car🚗!",
+    view: ""
+  },
+  "Grass": {
+    title: "Grass",
+    content: "You found a grass🌿!",
+    view: ""
+  },
+  "Board": {
+    title: "Hey there!",
+    content: "You found a secret 👽!",
+    view: "https://github.com/julianoventola/3D-Scene"
+  },
+}
+
+const modal = document.querySelector(".modal")
+const modalTitle = document.querySelector(".modal-title")
+const modalDescription = document.querySelector(".modal-description")
+const modalClose = document.querySelector(".modal-exit")
+const modalVisit = document.querySelector(".modal-visit")
+
+function hiddeModal() {
+  modal.classList.add("hidden")
+  modalClose.removeEventListener("click", hiddeModal)
+}
+
+function showModal(id) {
+  const content = modalContent[id]
+  if (content) {
+    modal.classList.remove("hidden")
+    modalTitle.textContent = content.title
+    modalDescription.textContent = content.content
+    modalClose.addEventListener("click", hiddeModal)
+    if (content.view === "") {
+      modalVisit.classList.add("hidden")
+    } else {
+      modalVisit.classList.remove("hidden")
+      modalVisit.setAttribute("href", content.view)
+    }
+  }
+}
+
+
 const raycaster = new THREE.Raycaster()
 const pointer = new THREE.Vector2()
 const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x568420);
 const windowSizes = {
   width: window.innerWidth,
   height: window.innerHeight
 }
 const canvas = document.querySelector("#exp-canvas")
 const loader = new GLTFLoader();
+
+let intersectedObject = ""
+const intersectObjects = []
+const intersectObjectsNames = [
+  "Flower",
+  "BigTree",
+  "Car",
+  "Grass",
+  "Board",
+]
+
 
 //const camera = new THREE.PerspectiveCamera(75, windowSizes.width / windowSizes.height, 0.1, 1000);
 const aspect = windowSizes.width / windowSizes.height
@@ -43,17 +112,19 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
 renderer.shadowMap.enabled = true
 renderer.toneMapping = THREE.ACESFilmicToneMapping
-renderer.toneMappingExposure = 1.75
+renderer.toneMappingExposure = 1.7
 
 //camera.position()
 camera.position.x = 34;
 camera.position.y = 20
 camera.position.z = -16;
 controls.update();
-const file = './portifolio.glb'
 
 loader.load(file, function (glb) {
   glb.scene.traverse((child) => {
+    if (intersectObjectsNames.includes(child.name)) {
+      intersectObjects.push(child)
+    }
     if (child.isMesh) {
       child.castShadow = true
       child.receiveShadow = true
@@ -104,18 +175,17 @@ window.addEventListener("resize", handleResize)
 
 function onPointMove(event) {
   pointer.x = (event.clientX / windowSizes.width) * 2 - 1
-  pointer.y = -(event.clientX / windowSizes.height) * 2 + 1
+  pointer.y = -(event.clientY / windowSizes.height) * 2 + 1
+}
+
+function onClick() {
+  if (intersectedObject != "Scene") {
+    showModal(intersectedObject.split("0")[0])
+  }
 }
 
 window.addEventListener("pointermove", onPointMove)
-
-function render() {
-  raycaster.setFromCamera(pointer, camera)
-  const intersects = raycaster.intersectObjects(scene.children)
-  for (let index = 0; index < intersects.length; index++) {
-    intersects[index].object.material.color.set(0xff0000)
-  }
-}
+window.addEventListener("click", onClick)
 
 function movingSun() {
   if (sun.position.z < 250) {
@@ -128,7 +198,20 @@ function movingSun() {
 
 function animate() {
   renderer.render(scene, camera);
-  //render()
+              
+  raycaster.setFromCamera(pointer, camera)
+  const intersects = raycaster.intersectObjects(scene.children)
+
+  if (intersects.length > 1) {
+    document.body.style.cursor = "pointer"
+  } else {
+    document.body.style.cursor = "default"
+    intersectedObject = ""
+  }
+  for (let index = 0; index < intersects.length; index++) {
+    intersectedObject = intersects[0].object.parent.name
+  }
+
   if (moveSun) {
     movingSun()
   }
