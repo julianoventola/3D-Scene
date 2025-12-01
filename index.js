@@ -140,6 +140,7 @@ const camera = new THREE.OrthographicCamera(-aspect * 50, aspect * 50, 50, -50, 
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 const controls = new OrbitControls(camera, canvas);
 
+
 renderer.setSize(windowSizes.width, windowSizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
 renderer.shadowMap.type = THREE.PCFSoftShadowMap
@@ -151,6 +152,9 @@ renderer.toneMappingExposure = 1.7
 camera.position.x = 34;
 camera.position.y = 20
 camera.position.z = -16;
+const cameraOffset = new THREE.Vector3(34, 20, -16)
+camera.zoom = 2
+camera.updateProjectionMatrix()
 controls.update();
 
 
@@ -358,6 +362,13 @@ moveRight.addEventListener("click", () => {
 
 function animate() {
   updatePlayer()
+
+  //if (character.instance) {
+  //camera.position.copy(character.instance.position).add(cameraOffset)
+  //camera.lookAt(character.instance.position)
+  //}
+
+
   renderer.render(scene, camera);
 
   raycaster.setFromCamera(pointer, camera)
